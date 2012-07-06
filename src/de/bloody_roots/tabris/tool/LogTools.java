@@ -11,6 +11,7 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 
 public class LogTools {
 
@@ -65,4 +66,26 @@ public class LogTools {
 			}
 		});
 	}
+
+	public static void logAllShellListeners(final Shell shell) {
+		shell.addShellListener(new ShellListener() {
+
+			@Override
+			public void shellDeactivated(ShellEvent e) {
+				System.out.println("shellDeactivated " + shell.getText());
+			}
+
+			@Override
+			public void shellClosed(ShellEvent e) {
+				System.out.println("shellClosed " + shell.getText());
+			}
+
+			@Override
+			public void shellActivated(ShellEvent e) {
+				System.out.println("shellActivated " + shell.getText());
+			}
+		});
+		logAllControlListeners(shell);
+	}
+	
 }

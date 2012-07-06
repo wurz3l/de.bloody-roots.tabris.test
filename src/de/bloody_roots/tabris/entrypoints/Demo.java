@@ -6,16 +6,11 @@ import org.eclipse.rwt.graphics.Graphics;
 import org.eclipse.rwt.lifecycle.IEntryPoint;
 import org.eclipse.rwt.lifecycle.WidgetUtil;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -25,6 +20,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
@@ -50,7 +46,8 @@ public class Demo implements IEntryPoint {
 		GridLayoutFactory.fillDefaults().applyTo(baseShell);
 
 		createToolBar(baseShell);
-		createContent(baseShell);
+		createContent(baseShell,-1);
+//		createContent(baseShell, 120);
 		createTabFolder(baseShell);
 
 		baseShell.open();
@@ -67,18 +64,15 @@ public class Demo implements IEntryPoint {
 		toolBar.setBackground(Graphics.getColor(0, 255, 0));
 		toolBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		ToolItem item = new ToolItem(toolBar, SWT.PUSH);
-		item.setText("Item");
+		item.setText("DISPOSE AND RECREATE");
 		item.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (composite.isDisposed()) {
-					composite = new Composite(baseShell, SWT.NONE);
-					composite.setBackground(Graphics.getColor(255, 0, 0));
-					GridLayoutFactory.fillDefaults().numColumns(3)
-							.applyTo(composite);
-					GridDataFactory.fillDefaults().grab(true, true)
-							.applyTo(composite);
+					createContent(baseShell,-1);
+					composite.layout();
+					baseShell.layout();
 				} else {
 					composite.dispose();
 				}
@@ -99,13 +93,13 @@ public class Demo implements IEntryPoint {
 		item.setText("Send");
 	}
 
-	private void createContent(Composite parent) {
+	private void createContent(Composite parent, int i) {
 		System.out.println("createContent");
 		composite = new Composite(parent, SWT.NONE);
 		composite.setBackground(Graphics.getColor(0, 0, 255));
 		GridLayoutFactory.swtDefaults().numColumns(3).applyTo(composite);
 		// GridDataFactory.fillDefaults().grab(true, true).applyTo(composite);
-		GridDataFactory.fillDefaults().grab(true, false).applyTo(composite);
+		GridDataFactory.fillDefaults().hint(SWT.DEFAULT, i).grab(true, false).applyTo(composite);
 
 		Button button1 = new Button(composite, SWT.NONE);
 		button1.addSelectionListener(new SelectionListener() {
@@ -120,7 +114,7 @@ public class Demo implements IEntryPoint {
 			}
 
 		});
-		button1.setText("openCenterApplicationModalDialog");
+		button1.setText("CenterApplicationModal");
 
 		Button button2 = new Button(composite, SWT.NONE);
 		button2.addSelectionListener(new SelectionListener() {
@@ -135,7 +129,7 @@ public class Demo implements IEntryPoint {
 			}
 
 		});
-		button2.setText("openLeftApplicationModalDialog");
+		button2.setText("LeftApplicationModal");
 
 		Button button3 = new Button(composite, SWT.NONE);
 		button3.addSelectionListener(new SelectionListener() {
@@ -150,7 +144,7 @@ public class Demo implements IEntryPoint {
 			}
 
 		});
-		button3.setText("openCloseableShell");
+		button3.setText("CloseableShell");
 	}
 
 	private void openCenterApplicationModalDialog() {
@@ -217,48 +211,7 @@ public class Demo implements IEntryPoint {
 			}
 		});
 		box.pack();
-		box.addControlListener(new ControlAdapter() {
 
-			@Override
-			public void controlResized(ControlEvent e) {
-				System.out.println("controlResized " + box.getText());
-			}
-
-			@Override
-			public void controlMoved(ControlEvent e) {
-				System.out.println("controlMoved " + box.getText());
-			}
-
-		});
-		box.addShellListener(new ShellListener() {
-
-			@Override
-			public void shellDeactivated(ShellEvent e) {
-				System.out.println("shellDeactivated " + box.getText());
-			}
-
-			@Override
-			public void shellClosed(ShellEvent e) {
-				System.out.println("shellClosed " + box.getText());
-			}
-
-			@Override
-			public void shellActivated(ShellEvent e) {
-				System.out.println("shellActivated " + box.getText());
-			}
-		});
-		box.addFocusListener(new FocusListener() {
-
-			@Override
-			public void focusLost(FocusEvent event) {
-				System.out.println("focusLost " + box.getText());
-			}
-
-			@Override
-			public void focusGained(FocusEvent event) {
-				System.out.println("focusGained " + box.getText());
-			}
-		});
 	}
 
 	private void centerDialog(Shell box) {
@@ -279,26 +232,23 @@ public class Demo implements IEntryPoint {
 		tab0.setText("Tab0");
 		tab0.setImage(new Image(display, this.getClass().getResourceAsStream(
 				"/images/envelope.png")));
-
-		createTabComposite(tabFolder, tab0);
+		Composite tab0Composite = createTabComposite(tabFolder, tab0);
+		this.createDisposeTest(tab0Composite);
 
 		final TabItem tab1 = new TabItem(tabFolder, SWT.NONE);
 		tab1.setText("InputControlsDemo");
-
 		Composite tab1Composite = createTabComposite(tabFolder, tab1);
 		InputControlsDemo inputControlsDemo = new InputControlsDemo();
 		inputControlsDemo.createContent(display, tab1Composite);
 
 		final TabItem tab2 = new TabItem(tabFolder, SWT.NONE);
 		tab2.setText("ButtonControlsDemo");
-
 		Composite tab2Composite = createTabComposite(tabFolder, tab2);
 		ButtonControlsDemo buttonControlsDemo = new ButtonControlsDemo();
 		buttonControlsDemo.createContent(display, tab2Composite);
 
 		final TabItem tab3 = new TabItem(tabFolder, SWT.NONE);
 		tab3.setText("SimpleTreeDemo");
-
 		Composite tab3Composite = createTabComposite(tabFolder, tab3);
 		SimpleTreeDemo simpleTreeDemo = new SimpleTreeDemo();
 		simpleTreeDemo.createContent(display, tab3Composite);
@@ -309,12 +259,78 @@ public class Demo implements IEntryPoint {
 		composite.setBackground(tabFolder.getDisplay().getSystemColor(
 				SWT.COLOR_GRAY));
 		GridLayoutFactory.fillDefaults().numColumns(1).applyTo(composite);
-		GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER)
+		GridDataFactory.fillDefaults().align(SWT.BEGINNING, SWT.BEGINNING)
 				.grab(true, true).applyTo(composite);
 
 		tab.setControl(composite);
 
 		return composite;
+	}
+
+	private void createDisposeTest(Composite parent) {
+		final Composite composite = new Composite(parent, SWT.NONE);
+		composite.setBackground(Graphics.getColor(0, 0, 0));
+		GridLayoutFactory.fillDefaults().numColumns(8).applyTo(composite);
+		GridDataFactory.fillDefaults().align(SWT.BEGINNING, SWT.BEGINNING)
+				.grab(true, true).applyTo(composite);
+
+		Button button = new Button(composite, SWT.NONE);
+		button.setText("withoutLayoutAndPack");
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				createLabelAndText(composite);
+				RGB rgb = composite.getBackground().getRGB();
+
+				rgb.blue += 10;
+				if (rgb.blue > 255) {
+					rgb.blue = 0;
+				}
+				rgb.red += 20;
+				if (rgb.red > 255) {
+					rgb.red = 0;
+				}
+				rgb.green += 30;
+				if (rgb.green > 255) {
+					rgb.green = 0;
+				}
+
+				composite.setBackground(Graphics.getColor(rgb));
+			}
+		});
+		button = new Button(composite, SWT.NONE);
+		button.setText("withLayoutAndPack");
+		button.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				createLabelAndText(composite);
+				RGB rgb = composite.getBackground().getRGB();
+
+				rgb.blue += 10;
+				if (rgb.blue > 255) {
+					rgb.blue = 0;
+				}
+				rgb.red += 20;
+				if (rgb.red > 255) {
+					rgb.red = 0;
+				}
+				rgb.green += 30;
+				if (rgb.green > 255) {
+					rgb.green = 0;
+				}
+
+				composite.setBackground(Graphics.getColor(rgb));
+				composite.layout();
+				composite.pack();
+			}
+		});
+	}
+
+	private void createLabelAndText(final Composite composite) {
+		Label label = new Label(composite, SWT.NONE);
+		label.setText("LABEL");
+		Text text = new Text(composite, SWT.NONE);
+		text.setText(" TEXT");
 	}
 
 }
